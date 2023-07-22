@@ -19,6 +19,6 @@ async function bootstrap() {
   // 允许跨域
   app.enableCors();
   await app.listen(3000, '0.0.0.0' /* 允许外网访问 */);
-  // 01:02:58
+  // 01:22:18
 }
 bootstrap();

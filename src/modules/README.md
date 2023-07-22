@@ -1,4 +1,5 @@
 # [typeorm](https://typeorm.io)
+> 中文文档：typeorm.bootcss.com
 
 ## subscribers
 订阅者的作用在于可以在CRUD(创建,查询,更新,删除)数据时创建一个钩子方法来执行额外的操作

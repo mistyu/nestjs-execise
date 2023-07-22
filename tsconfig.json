@@ -31,7 +31,7 @@
     "baseUrl": ".",
     "outDir": "./dist",
     "paths": {
-        "@/*": ["./src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src", "test", "typings/**/*.d.ts", "**.js"]

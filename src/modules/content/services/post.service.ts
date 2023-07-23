@@ -1,14 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { isNil, isFunction, omit } from 'lodash';
 
-import { EntityNotFoundError } from 'typeorm';
+import { EntityNotFoundError, IsNull, Not, SelectQueryBuilder } from 'typeorm';
 
+import { paginate } from '@/modules/databse/helpers';
+import { PaginateOptions, QueryHook } from '@/modules/databse/types';
+
+import { PostOrderType } from '../constants';
 import { PostEntity } from '../entites/post.entity';
 import { PostRepository } from '../repositories';
 
 @Injectable()
 export class PostService {
   constructor(protected repository: PostRepository) {}
+
+  // 分页
+  async paginate(options: PaginateOptions, callback?: QueryHook<PostEntity>) {
+    const qb = await this.buildListQuery(
+      this.repository.buildBaseQB(),
+      options,
+      async (qbuilder) => qbuilder,
+    );
+    return paginate(qb, options);
+  }
 
   // 详情
   async detail(id: string, callback?: any) {
@@ -37,5 +51,58 @@ export class PostService {
   async delete(id: string) {
     const item = await this.repository.findOneByOrFail({ id });
     return this.repository.remove(item);
+  }
+
+  /**
+   * 构建文章列表查询器
+   * @param qb 初始查询构造器
+   * @param options 排查分页选项后的查询选项
+   * @param callback 添加额外的查询
+   */
+  protected async buildListQuery(
+    qb: SelectQueryBuilder<PostEntity>,
+    options: Record<string, any>,
+    callback?: QueryHook<PostEntity>,
+  ) {
+    const { orderBy, isPublished } = options;
+    let newQb = qb;
+    if (typeof isPublished === 'boolean') {
+      newQb = isPublished
+        ? newQb.where({
+            publishedAt: Not(IsNull()),
+          })
+        : newQb.where({
+            publishedAt: IsNull(),
+          });
+    }
+    newQb = this.queryOrderBy(newQb, orderBy);
+    if (callback) return callback(newQb);
+    return newQb;
+  }
+
+  /**
+   *  对文章进行排序的Query构建
+   * @param qb
+   * @param orderBy 排序方式
+   */
+  protected queryOrderBy(
+    qb: SelectQueryBuilder<PostEntity>,
+    orderBy?: PostOrderType,
+  ) {
+    switch (orderBy) {
+      case PostOrderType.CREATED:
+        return qb.orderBy('post.createdAt', 'DESC');
+      case PostOrderType.UPDATED:
+        return qb.orderBy('post.updatedAt', 'DESC');
+      case PostOrderType.PUBLISHED:
+        return qb.orderBy('post.publishedAt', 'DESC');
+      case PostOrderType.CUSTOM:
+        return qb.orderBy('customOrder', 'DESC');
+      default:
+        return qb
+          .orderBy('post.createdAt', 'DESC')
+          .addOrderBy('post.updatedAt', 'DESC')
+          .addOrderBy('post.publishedAt', 'DESC');
+    }
   }
 }

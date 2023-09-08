@@ -75,9 +75,9 @@ export class PostEntity extends BaseEntity {
     @Column({ comment: '文章排序', default: 0 })
     customOrder!: number;
 
-    @CreateDateColumn({
-        comment: '创建时间',
-    })
+  @CreateDateColumn({
+    comment: '创建时间',
+  })
     createdAt!: Date;
 
     @UpdateDateColumn({

@@ -213,3 +213,61 @@ export class PostService {
     }
 }
 ```
+
+## DTO
+dto是用于对请求数据结构进行定义的一个类，用于aop编程。常用于对body,query等请求数据进行验证 我们常用的验证库为class-validator 对于body和query数据的验证一般使用dto+ValidationPipe这个预定义管道(本节下面的内容会自定义一个全局管道代替这个预定义管道) 对于param数据的验证一般直接使用预定义或者自定义的非全局管道,比如ParseUUIDPipe
+
+## provider
+通俗的来讲，提供者就是通过类型提示或者标识符的方式使某个类或函数以依赖注入的方式在其它需要使用到它的地方进行实例化 同时也是Nestjs，Laravel，Symfony以及Spring,Angular等现代web框架的核心所在
+
+在nestjs中如果要使一个类变成提供者，需要在其顶部添加@Injectale()装饰器 以一个服务类为例
+```ts
+@Injectable()
+export class PostService {
+    protected posts: PostEntity[] = [
+        { title: '第一篇文章标题', body: '第一篇文章内容' },
+        { title: '第二篇文章标题', body: '第二篇文章内容' },
+        { title: '第三篇文章标题', body: '第三篇文章内容' },
+        { title: '第四篇文章标题', body: '第四篇文章内容' },
+        { title: '第五篇文章标题', body: '第五篇文章内容' },
+        { title: '第六篇文章标题', body: '第六篇文章内容' },
+    ].map((v, id) => ({ ...v, id }));
+
+    async findAll() {
+        return this.posts;
+    }
+
+    async findOne(id: number) {
+        const post = this.posts.find((item) => item.id === id);
+        if (isNil(post)) throw new NotFoundException(`the post with id ${id} not exits!`);
+        return post;
+    }
+
+    async create(data: CreatePostDto) {
+        const newPost: PostEntity = {
+            id: Math.max(...this.posts.map(({ id }) => id + 1)),
+            ...data,
+        };
+        this.posts.push(newPost);
+        return newPost;
+    }
+
+    async update(data: UpdatePostDto) {
+        let toUpdate = this.posts.find((item) => item.id === data.id);
+        if (isNil(toUpdate)) throw new NotFoundException(`the post with id ${data.id} not exits!`);
+        toUpdate = { ...toUpdate, ...data };
+        this.posts = this.posts.map((item) => (item.id === data.id ? toUpdate : item));
+        return toUpdate;
+    }
+
+    async delete(id: number) {
+        const toDelete = this.posts.find((item) => item.id === id);
+        if (isNil(toDelete)) throw new NotFoundException(`the post with id ${id} not exits!`);
+        this.posts = this.posts.filter((item) => item.id !== id);
+        return toDelete;
+    }
+}
+```
+
+`注册提供者:`
+创建完提供者后应把提供者类放到模块的providers数组中以注册

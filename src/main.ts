@@ -8,11 +8,13 @@ import {
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  // const app = await NestFactory.create(AppModule);
-  // await app.listen(3000);
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
+    {
+      cors: true,
+      logger: ['error', 'warn', 'log'],
+    },
   );
   // 指定 url 前缀
   app.setGlobalPrefix('api');

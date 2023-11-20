@@ -2,6 +2,7 @@ import { Exclude, Expose, Type } from 'class-transformer';
 import {
   BaseEntity,
   Column,
+  DeleteDateColumn,
   Entity,
   OneToMany,
   PrimaryColumn,
@@ -46,4 +47,11 @@ export class CategoryEntity extends BaseEntity {
     cascade: true,
   })
   posts: Relation<PostEntity[]>;
+
+  @Expose()
+  @Type(() => Date)
+  @DeleteDateColumn({
+    comment: '删除时间',
+  })
+  deletedAt: Date;
 }

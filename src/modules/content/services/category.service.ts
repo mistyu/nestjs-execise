@@ -2,13 +2,15 @@ import { Injectable } from '@nestjs/common';
 
 import { isNil, omit } from 'lodash';
 
-import { EntityNotFoundError } from 'typeorm';
+import { EntityNotFoundError, In } from 'typeorm';
 
+import { SelectTrashMode } from '@/modules/database/constants';
 import { treePaginate } from '@/modules/database/helpers';
 
 import {
   CreateCategoryDto,
   QueryCategoryDto,
+  QueryCategoryTreeDto,
   UpdateCategoryDto,
 } from '../dtos';
 import { CategoryEntity } from '../entities';
@@ -24,8 +26,13 @@ export class CategoryService {
   /**
    * 查询分类树
    */
-  async findTrees() {
-    return this.repository.findTrees();
+  async findTrees(options: QueryCategoryTreeDto) {
+    const { trashed = SelectTrashMode.NONE } = options;
+    return this.repository.findTrees({
+      withTrashed:
+        trashed === SelectTrashMode.ALL || trashed === SelectTrashMode.ONLY,
+      onlyTrashed: trashed === SelectTrashMode.ONLY,
+    });
   }
 
   /**
@@ -33,7 +40,12 @@ export class CategoryService {
    * @param options 分页选项
    */
   async paginate(options: QueryCategoryDto) {
-    const tree = await this.repository.findTrees();
+    const { trashed = SelectTrashMode.NONE } = options;
+    const tree = await this.repository.findTrees({
+      withTrashed:
+        trashed === SelectTrashMode.ALL || trashed === SelectTrashMode.ONLY,
+      onlyTrashed: trashed === SelectTrashMode.ONLY,
+    });
     const data = await this.repository.toFlatTrees(tree);
     return treePaginate(options, data);
   }
@@ -82,24 +94,36 @@ export class CategoryService {
   }
 
   /**
-   * 删除分类
-   * @param id
+   *  删除分类
+   * @param ids
+   * @param trash
    */
-  async delete(id: string) {
-    const item = await this.repository.findOneOrFail({
-      where: { id },
+  async delete(ids: string[], trash?: boolean) {
+    const items = await this.repository.find({
+      where: { id: In(ids) },
+      withDeleted: true,
       relations: ['parent', 'children'],
     });
-    // 把子分类提升一级
-    if (!isNil(item.children) && item.children.length > 0) {
-      const nchildren = [...item.children].map((c) => {
-        c.parent = item.parent;
-        return item;
-      });
+    for (const item of items) {
+      // 把子分类提升一级
+      if (!isNil(item.children) && item.children.length > 0) {
+        const nchildren = [...item.children].map((c) => {
+          c.parent = item.parent;
+          return item;
+        });
 
-      await this.repository.save(nchildren, { reload: true });
+        await this.repository.save(nchildren);
+      }
     }
-    return this.repository.remove(item);
+    if (trash) {
+      const directs = items.filter((item) => !isNil(item.deletedAt));
+      const softs = items.filter((item) => isNil(item.deletedAt));
+      return [
+        ...(await this.repository.remove(directs)),
+        ...(await this.repository.softRemove(softs)),
+      ];
+    }
+    return this.repository.remove(items);
   }
 
   /**
@@ -120,5 +144,25 @@ export class CategoryService {
         );
     }
     return parent;
+  }
+
+  /**
+   * 恢复分类
+   * @param ids
+   */
+  async restore(ids: string[]) {
+    const items = await this.repository.find({
+      where: { id: In(ids) } as any,
+      withDeleted: true,
+    });
+
+    const trasheds = items
+      .filter((item) => !isNil(item))
+      .map((item) => item.id);
+    if (trasheds.length < 1) return [];
+    await this.repository.restore(trasheds);
+    const qb = this.repository.buildBaseQB();
+    qb.andWhereInIds(trasheds);
+    return qb.getMany();
   }
 }

@@ -11,22 +11,17 @@ import {
 
 import { DtoValidation } from '@/modules/core/decorators';
 import { toBoolean } from '@/modules/core/helpers';
+import { SelectTrashMode } from '@/modules/database/constants';
+import { IsDataExist } from '@/modules/database/constraints';
 import { PaginateOptions } from '@/modules/database/types';
 
 import { PostOrderType } from '../constants';
+import { CategoryEntity, TagEntity } from '../entities';
 
 export class QueryPostDto implements PaginateOptions {
   page: number;
 
   limit: number;
-
-  @IsUUID(undefined, { message: 'ID格式错误' })
-  @IsOptional()
-  category?: string;
-
-  @IsUUID(undefined, { message: 'ID格式错误' })
-  @IsOptional()
-  tag?: string;
 
   /**
    * 是否查询已发布(全部文章:不填、只查询已发布的:true、只查询未发布的:false)
@@ -44,17 +39,54 @@ export class QueryPostDto implements PaginateOptions {
   })
   @IsOptional()
   orderBy?: PostOrderType;
+
+  @IsDataExist(CategoryEntity, {
+    always: true,
+    message: '分类不存在',
+  })
+  @IsUUID(undefined, {
+    each: true,
+    always: true,
+    message: 'ID格式不正确',
+  })
+  @IsUUID(undefined, { message: 'ID格式错误' })
+  @IsOptional()
+  category?: string;
+
+  @IsDataExist(TagEntity, {
+    always: true,
+    message: '标签不存在',
+  })
+  @IsUUID(undefined, {
+    each: true,
+    always: true,
+    message: 'ID格式不正确',
+  })
+  @IsUUID(undefined, { message: 'ID格式错误' })
+  @IsOptional()
+  tag?: string;
+
+  @IsEnum(SelectTrashMode)
+  @IsOptional()
+  trashed?: SelectTrashMode;
 }
 
 export class CreatePostDto {
+  @IsDataExist(CategoryEntity, {
+    message: '分类不存在',
+  })
   @IsUUID(undefined, {
-    each: true,
     always: true,
     message: 'ID格式不正确',
   })
   @IsOptional({ groups: ['update'] })
   category: string;
 
+  @IsDataExist(TagEntity, {
+    each: true,
+    always: true,
+    message: '标签不存在',
+  })
   @IsUUID(undefined, {
     each: true,
     always: true,

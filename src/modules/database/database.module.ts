@@ -8,6 +8,13 @@ import {
 import { DataSource, ObjectType } from 'typeorm';
 
 import { CUSTOM_REPOSITORY_METADATA } from './constants';
+import {
+  DataExistConstraint,
+  UniqueConstraint,
+  UniqueExistContraint,
+  UniqueTreeConstraint,
+  UniqueTreeExistConstraint,
+} from './constraints';
 
 @Module({})
 export class DatabaseModule {
@@ -16,6 +23,13 @@ export class DatabaseModule {
       global: true,
       module: DatabaseModule,
       imports: [TypeOrmModule.forRoot(configRegister())],
+      providers: [
+        DataExistConstraint,
+        UniqueConstraint,
+        UniqueExistContraint,
+        UniqueTreeConstraint,
+        UniqueTreeExistConstraint,
+      ],
     };
   }
 

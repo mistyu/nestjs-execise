@@ -16,7 +16,7 @@ import { DeleteWithTrashDto } from '@/modules/restful/dtos/delete-with-trash.dto
 import { RestoreDto } from '@/modules/restful/dtos/restore.dto';
 
 import { CreatePostDto, QueryPostDto, UpdatePostDto } from '../dtos';
-import { PostService } from '../services';
+import { PostService } from '../services/post.service';
 
 @Controller('posts')
 export class PostController {

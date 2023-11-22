@@ -30,6 +30,7 @@
     "class-validator": "^0.14.0",
     "deepmerge": "^4.3.1",
     "lodash": "^4.17.21",
+    "meilisearch": "^0.36.0",
     "mysql2": "^3.5.2",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",

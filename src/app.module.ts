@@ -2,18 +2,21 @@ import { Module } from '@nestjs/common';
 
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 
-import { database } from './config';
+import { content, database, meilli } from './config';
 import { ContentModule } from './modules/content/content.module';
 import { CoreModule } from './modules/core/core.module';
 import { AppIntercepter, AppPipe } from './modules/core/providers';
 import { AppFilter } from './modules/core/providers/app.filter';
 import { DatabaseModule } from './modules/database/database.module';
+import { MeilliModule } from './modules/meilisearch/melli.module';
 
 @Module({
   imports: [
     DatabaseModule.forRoot(database),
-    ContentModule,
+    ContentModule.forRoot(content),
     CoreModule.forRoot(),
+    ContentModule.forRoot(content),
+    MeilliModule.forRoot(meilli),
   ],
   controllers: [],
   providers: [

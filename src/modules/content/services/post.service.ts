@@ -38,6 +38,8 @@ type FindParams = {
  */
 @Injectable()
 export class PostService {
+  protected enableTrash = true;
+
   constructor(
     protected repository: PostRepository,
     protected categoryRepository: CategoryRepository,
@@ -61,7 +63,7 @@ export class PostService {
       return this.searchService.search(
         options.search,
         pick(options, ['trashed', 'page', 'limit']),
-      );
+      ) as any;
     }
     const qb = await this.buildListQuery(
       this.repository.buildBaseQB(),

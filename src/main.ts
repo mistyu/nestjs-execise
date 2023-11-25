@@ -1,26 +1,18 @@
-import { NestFactory } from '@nestjs/core';
+import { isNil } from 'lodash';
 
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { createData } from './constants';
+import { createApp, startApp } from './modules/core/helpers/app';
 
-import { AppModule } from './app.module';
-
-async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter(),
-    {
-      // cors: true,
-      logger: ['error', 'warn', 'log'],
-    },
-  );
-  // 指定 url 前缀
-  app.setGlobalPrefix('api');
-  // 允许跨域
-  app.enableCors();
-  await app.listen(3000, '0.0.0.0' /* 允许外网访问 */);
-  // 01:56:18
-}
-bootstrap();
+startApp(createApp(createData), ({ configure }) => async () => {
+  console.log();
+  const chalk = (await import('chalk')).default;
+  const appUrl = await configure.get<string>('app.url');
+  // 设置应用的API前缀,如果没有则与appUrl相同
+  const urlPrefix = await configure.get('app.prefix', undefined);
+  const apiUrl = !isNil(urlPrefix)
+    ? `${appUrl}${urlPrefix.length > 0 ? `/${urlPrefix}` : urlPrefix}`
+    : appUrl;
+  console.log(`- AppUrl: ${chalk.green.underline(appUrl)}`);
+  console.log();
+  console.log(`- ApiUrl: ${chalk.green.underline(apiUrl)}`);
+});

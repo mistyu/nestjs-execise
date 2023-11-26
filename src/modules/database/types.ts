@@ -53,6 +53,9 @@ export interface PaginateMeta {
 /**
  * 分页选项
  */
+/**
+ * 分页选项
+ */
 export interface PaginateOptions {
   /**
    * 当前页数

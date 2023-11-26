@@ -12,6 +12,9 @@ import { DeleteDto } from './delete.dto';
  */
 @DtoValidation()
 export class DeleteWithTrashDto extends DeleteDto {
+  /**
+   * 是否软删除
+   */
   @Transform(({ value }) => toBoolean(value))
   @IsBoolean()
   @IsOptional()

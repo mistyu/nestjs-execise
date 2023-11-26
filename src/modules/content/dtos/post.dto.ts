@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   IsBoolean,
@@ -12,19 +12,15 @@ import {
 
 import { DtoValidation } from '@/modules/core/decorators';
 import { toBoolean } from '@/modules/core/helpers';
-import { SelectTrashMode } from '@/modules/database/constants';
 import { IsDataExist } from '@/modules/database/constraints';
-import { PaginateOptions } from '@/modules/database/types';
+
+import { PaginateWithTrashedDto } from '@/modules/restful/dtos/paginate-width-trashed.dto';
 
 import { PostOrderType } from '../constants';
 import { CategoryEntity, TagEntity } from '../entities';
 
 @DtoValidation({ type: 'query' })
-export class QueryPostDto implements PaginateOptions {
-  page: number;
-
-  limit: number;
-
+export class QueryPostDto extends PaginateWithTrashedDto {
   /**
    * 全文搜索
    */
@@ -52,38 +48,51 @@ export class QueryPostDto implements PaginateOptions {
   @IsOptional()
   orderBy?: PostOrderType;
 
+  /**
+   * 根据分类ID查询此分类及其后代分类下的文章
+   */
   @IsDataExist(CategoryEntity, {
     always: true,
     message: '分类不存在',
-  })
-  @IsUUID(undefined, {
-    each: true,
-    always: true,
-    message: 'ID格式不正确',
   })
   @IsUUID(undefined, { message: 'ID格式错误' })
   @IsOptional()
   category?: string;
 
+  /**
+   * 根据管理标签ID查询
+   */
   @IsDataExist(TagEntity, {
     always: true,
     message: '标签不存在',
   })
-  @IsUUID(undefined, {
-    each: true,
-    always: true,
-    message: 'ID格式不正确',
-  })
   @IsUUID(undefined, { message: 'ID格式错误' })
   @IsOptional()
   tag?: string;
-
-  @IsEnum(SelectTrashMode)
-  @IsOptional()
-  trashed?: SelectTrashMode;
 }
 
+@DtoValidation({ groups: ['create'] })
 export class CreatePostDto {
+  @ApiProperty({ description: '文章标题', maxLength: 255 })
+  @MaxLength(255, {
+    always: true,
+    message: '文章标题长度最大为$constraint1',
+  })
+  @IsNotEmpty({ groups: ['create'], message: '文章标题必须填写' })
+  @IsOptional({ groups: ['update'] })
+  title: string;
+
+  @ApiPropertyOptional({
+    description: '文章描述',
+    maxLength: 500,
+  })
+  @MaxLength(500, {
+    always: true,
+    message: '文章描述长度最大为$constraint1',
+  })
+  @IsOptional({ always: true })
+  summary?: string;
+
   @IsDataExist(CategoryEntity, {
     message: '分类不存在',
   })

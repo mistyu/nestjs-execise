@@ -7,6 +7,9 @@ import { DtoValidation } from '@/modules/core/decorators';
  */
 @DtoValidation()
 export class RestoreDto {
+  /**
+   * 待恢复数据的ID列表
+   */
   @IsUUID(undefined, {
     each: true,
     message: 'ID格式错误',

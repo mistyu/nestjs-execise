@@ -61,3 +61,17 @@ interface TagOption {
   description?: string;
   externalDocs?: ExternalDocumentationObject;
 }
+
+interface TagOption {
+  name: string;
+  description?: string;
+  externalDocs?: ExternalDocumentationObject;
+}
+
+/**
+ * API与swagger整合的选项
+ */
+export interface ApiDocOption {
+  default?: SwaggerOption;
+  routes?: { [key: string]: SwaggerOption };
+}

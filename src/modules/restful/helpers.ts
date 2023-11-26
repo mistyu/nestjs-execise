@@ -21,6 +21,7 @@ export async function echoApi(
   container: NestFastifyApplication,
 ) {
   const appUrl = await configure.get<string>('app.url');
+  // const chalk = (await import('chalk')).default;
   // 设置应用的API前缀,如果没有则与appUrl相同
   const urlPrefix = await configure.get('app.prefix', undefined);
   const apiUrl = !isNil(urlPrefix)

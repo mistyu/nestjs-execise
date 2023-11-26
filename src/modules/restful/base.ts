@@ -64,6 +64,7 @@ export abstract class BaseRestful {
    * @param config
    */
   protected createConfig(config: ApiConfig) {
+    console.log(config, 'config');
     if (!config.default) {
       throw new Error('default api version name should been config!');
     }

@@ -19,6 +19,9 @@ export class Env {
     // 从当前运行应用的目录开始,向上查找.env文件,直到找到第一个文件为止
     // 没有找到则返回undefined
     const search = [findUp.sync(['.env'])];
+    if (process.env.NODE_ENV !== EnvironmentType.PRODUCTION) {
+      search.push(findUp.sync([`.env.${process.env.NODE_ENV}`]));
+    }
     // 从当前运行应用的目录开始,向上寻找.env.{环境变量文件},直到找到第一个文件为止,如.env.local
     // 如果是development、dev、production、prod环境则同时查找两个
     // 没有找到则返回undefined

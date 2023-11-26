@@ -7,7 +7,7 @@ import { StartOptions } from 'pm2';
 import { CommandModule } from 'yargs';
 
 import { Configure } from '../config/configure';
-import { ConfigStorageOption, ConfigureFactory } from '../config/types';
+import { ConfigStorageOption } from '../config/types';
 
 /**
  * App对象类型
@@ -70,6 +70,10 @@ export interface CreateOptions {
   /**
    * 全局配置
    */
+  /**
+   * 应用命令
+   */
+  commands: () => CommandCollection;
   globals?: {
     /**
      * 全局管道,默认为AppPipe,设置为null则不添加
@@ -93,7 +97,7 @@ export interface CreateOptions {
     /**
      * 初始配置集
      */
-    factories: Record<string, ConfigureFactory<Record<string, any>>>;
+    factories: Record<string, any>;
     /**
      * 配置服务的动态存储选项
      */

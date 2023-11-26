@@ -5,9 +5,9 @@ import {
   ModuleMetadata,
   Type,
 } from '@nestjs/common';
-
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { useContainer } from 'class-validator';
+
 import { isNil, omit } from 'lodash';
 
 import { ConfigModule } from '@/modules/config/config.module';
@@ -17,15 +17,19 @@ import { ConfigureFactory, ConfigureRegister } from '@/modules/config/types';
 
 import { getDefaultAppConfig } from '../constants';
 import { CoreModule } from '../core.module';
-import { AppIntercepter, AppPipe } from '../providers';
-import { AppFilter } from '../providers/app.filter';
+import { AppFilter, AppIntercepter, AppPipe } from '../providers';
 import { App, AppConfig, CreateOptions } from '../types';
 
 import { CreateModule } from './utils';
 
+// app实例常量
+export const app: App = { configure: new Configure(), commands: [] };
+
+/**
+ * 创建一个应用
+ * @param options 创建选项
+ */
 export const createApp = (options: CreateOptions) => async (): Promise<App> => {
-  // app实例常量
-  const app: App = { configure: new Configure(), commands: [] };
   const { config, builder } = options;
   // 初始化配置实例
   await app.configure.initilize(config.factories, config.storage);
@@ -48,9 +52,15 @@ export const createApp = (options: CreateOptions) => async (): Promise<App> => {
   useContainer(app.container.select(BootModule), {
     fallbackOnErrors: true,
   });
+  // app.commands = await createCommands(options.commands, app as Required<App>);
   return app;
 };
 
+/**
+ * 构建一个启动模块
+ * @param params
+ * @param options
+ */
 export async function createBootModule(
   configure: Configure,
   options: Pick<CreateOptions, 'globals' | 'modules'>,
@@ -113,21 +123,6 @@ export async function createBootModule(
 }
 
 /**
- * 构建APP CLI,默认start命令应用启动监听app
- * @param creator APP构建器
- * @param listened 监听回调
- */
-export async function startApp(
-  creator: () => Promise<App>,
-  listened?: (app: App) => () => Promise<void>,
-) {
-  const app = await creator();
-  const { container, configure } = app;
-  const { port, host } = await configure.get<AppConfig>('app');
-  await container.listen(port, host, listened(app));
-}
-
-/**
  * 应用配置工厂
  */
 export const createAppConfig: (
@@ -143,3 +138,22 @@ export const createAppConfig: (
     return value;
   },
 });
+
+/**
+ * 构建APP CLI,默认start命令应用启动监听app
+ * @param creator APP构建器
+ * @param listened 监听回调
+ */
+export async function startApp(
+  creator: () => Promise<App>,
+  listened?: (app: App, startTime: Date) => () => Promise<void>,
+) {
+  const startTime = new Date();
+  const { container, configure, commands } = await creator();
+  console.log(configure, 'configure');
+  app.commands = commands;
+  app.container = container;
+  app.configure = configure;
+  const { port, host } = await configure.get<AppConfig>('app');
+  await container.listen(port, host, listened(app, startTime));
+}

@@ -6,7 +6,7 @@ import {
   Type,
 } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
-import { isObject } from 'class-validator';
+import { isObject } from 'lodash';
 import {
   EntityNotFoundError,
   EntityPropertyNotFoundError,

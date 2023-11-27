@@ -20,6 +20,7 @@ import { CoreModule } from '../core.module';
 import { AppFilter, AppIntercepter, AppPipe } from '../providers';
 import { App, AppConfig, CreateOptions } from '../types';
 
+import { createCommands } from './command';
 import { CreateModule } from './utils';
 
 // app实例常量
@@ -52,7 +53,7 @@ export const createApp = (options: CreateOptions) => async (): Promise<App> => {
   useContainer(app.container.select(BootModule), {
     fallbackOnErrors: true,
   });
-  // app.commands = await createCommands(options.commands, app as Required<App>);
+  app.commands = await createCommands(options.commands, app as Required<App>);
   return app;
 };
 
@@ -150,7 +151,6 @@ export async function startApp(
 ) {
   const startTime = new Date();
   const { container, configure, commands } = await creator();
-  console.log(configure, 'configure');
   app.commands = commands;
   app.container = container;
   app.configure = configure;

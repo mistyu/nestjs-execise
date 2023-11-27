@@ -4,7 +4,7 @@ import ora from 'ora';
 import { Arguments } from 'yargs';
 
 import { Configure } from '@/modules/config/configure';
-import { panic } from '@/modules/core/helpers';
+import { panic } from '@/modules/core/types';
 
 import { DbOptions, MigrationCreateArguments, TypeormOption } from '../types';
 
